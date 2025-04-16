@@ -8,5 +8,8 @@
   background-color: #0E0E20;
 }
 
-[Animation]
+.clock {
+  background-color: red;
+}
 
+[Animation]

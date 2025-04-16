@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::{fs, io, path::PathBuf};
 use toml;
 
+pub use crate::configuration::alarm::AlarmsConfig;
 pub use crate::configuration::animation::AnimationConfig;
 pub use crate::configuration::env::EnvConfig;
 pub use crate::configuration::general::GeneralConfig;
@@ -18,6 +19,7 @@ pub struct Config {
     pub env: EnvConfig,
     pub general: GeneralConfig,
     pub theme: ThemeConfig,
+    pub alarms: AlarmsConfig,
 }
 
 impl Config {
@@ -28,6 +30,7 @@ impl Config {
             env: EnvConfig::new(),
             general: GeneralConfig::new(),
             theme: ThemeConfig::new(),
+            alarms: AlarmsConfig::new(),
         }
     }
 
@@ -58,6 +61,7 @@ impl Config {
                 env: EnvConfig::new(),
                 general: GeneralConfig::new(),
                 theme: ThemeConfig::new(),
+                alarms: AlarmsConfig::new(),
             };
             default_config.save()?;
             Ok(default_config)
@@ -114,5 +118,11 @@ impl Config {
 pub fn get_config_path() -> PathBuf {
     let mut path = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/"));
     path.push(".config/hypr/hyprclock.conf");
+    path
+}
+
+pub fn get_style_path() -> PathBuf {
+    let mut path = dirs::home_dir().unwrap_or_else(|| PathBuf::from("/"));
+    path.push(".config/hypr/hyprclock.css");
     path
 }

@@ -9,7 +9,7 @@ clap = { version = "4.5.21", features = ["derive"] }
 config = "0.14.1"
 dirs = "5.0.1"
 fern = "0.7.0"
-gtk4 = "0.9.4"
+gtk4 = { version = "0.9.4", features = ["v4_6"] }
 gdk4 = "0.9.4"
 glib = "0.20.6"
 log = "0.4.22"

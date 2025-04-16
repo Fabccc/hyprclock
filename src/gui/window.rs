@@ -2,12 +2,16 @@
 // github.com/cvusmo/hyprclock
 
 use crate::configuration::config::Config;
-use crate::configuration::general::GeneralConfig;
 use crate::configuration::logger::*;
 use crate::gui::update_window::monitor_css;
-use gtk::{prelude::*, Application, ApplicationWindow, Grid, Justification, Label};
-use gtk4 as gtk;
+use gtk::{prelude::*, Application, ApplicationWindow, Grid, Label};
+use gtk4::{self as gtk, Notebook, Widget};
 use std::sync::{Arc, Mutex};
+
+use super::{
+    alarms::create_alarm_list,
+    clock::{create_clock_grid, create_clock_label},
+};
 
 // Function to Build UI
 pub fn build_ui(
@@ -28,6 +32,7 @@ pub fn build_ui(
 
     // Create clock label using validated GeneralConfig
     let clock_label = create_clock_label(&config.general);
+    let alarm_list = create_alarm_list(&config.alarms);
 
     // Debug Mode enabled label
     let debug_label = if debug_mode {
@@ -37,8 +42,9 @@ pub fn build_ui(
     };
 
     // Create grid and set it as window child
-    let grid = create_grid(&clock_label, debug_label.as_ref());
-    window.set_child(Some(&grid));
+    // let grid = create_grid(&clock_label, debug_label.as_ref());
+    let notebook = create_notebook(&clock_label, debug_label.as_ref(), &alarm_list);
+    window.set_child(Some(&notebook));
 
     // Start the timer for updating the clock label using GeneralConfig
     config
@@ -52,20 +58,6 @@ pub fn build_ui(
     // Window built successfully
     log_info(state, "Window built successfully.");
     window
-}
-
-// Function to create the clock label
-fn create_clock_label(config: &GeneralConfig) -> Arc<Label> {
-    Arc::new(
-        Label::builder()
-            .label(&config.get_current_time())
-            .justify(Justification::Center)
-            .wrap(true)
-            .wrap_mode(gtk::pango::WrapMode::WordChar)
-            .max_width_chars(-1)
-            .css_classes(vec!["clock".to_string()]) // Uses CSS class for styling
-            .build(),
-    )
 }
 
 // Function to create window
@@ -96,25 +88,28 @@ fn create_debug_label() -> Arc<Label> {
     )
 }
 
-// Function to create the grid
-fn create_grid(clock_label: &Arc<Label>, debug_label: Option<&Arc<Label>>) -> Grid {
-    let grid = Grid::builder().row_spacing(10).column_spacing(10).build();
+// Function to create a container with tabs (in gtk it's called Notebook)
+fn create_notebook(
+    clock_label: &Arc<Label>,
+    debug_label: Option<&Arc<Label>>,
+    alarm_list: &Arc<impl IsA<Widget>>,
+) -> Notebook {
+    let notebook = Notebook::builder()
+        .hexpand(true)
+        .vexpand(true)
+        .halign(gtk4::Align::Center)
+        .valign(gtk4::Align::Center)
+        .tab_pos(gtk4::PositionType::Bottom)
+        .build();
 
-    // Attach clock label
-    grid.attach(clock_label.as_ref(), 0, 1, 2, 1);
+    notebook.append_page(
+        &create_clock_grid(clock_label, debug_label),
+        Some(&Label::builder().label("Clock").build()),
+    );
+    notebook.append_page(
+        &**alarm_list,
+        Some(&Label::builder().label("Alarm").build()),
+    );
 
-    // Attach debug label if it exists
-    if let Some(label) = debug_label {
-        grid.attach(label.as_ref(), 0, 0, 2, 1);
-        label.set_hexpand(true);
-        label.set_vexpand(true);
-    }
-
-    clock_label.set_hexpand(true);
-    clock_label.set_vexpand(true);
-
-    grid.set_halign(gtk::Align::Center);
-    grid.set_valign(gtk::Align::Center);
-
-    grid
+    notebook
 }

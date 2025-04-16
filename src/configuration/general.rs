@@ -1,10 +1,13 @@
 // src/configuration/general.rs
 // github.com/cvusmo/hyprclock
 
-use crate::configuration::logger::{log_info, AppState};
+use crate::{
+    configuration::logger::{log_info, AppState},
+    gui::clock,
+};
 use chrono::{DateTime, Local};
 use glib::ControlFlow::Continue;
-use gtk4::Label;
+use gtk4::{prelude::WidgetExt, Label};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
@@ -47,9 +50,11 @@ impl GeneralConfig {
         let general_config = self.clone(); // Clone the GeneralConfig instance to move into the closure
 
         glib::timeout_add_seconds_local(1, move || {
-            let current_time = general_config.get_current_time();
-            clock_label.set_label(&current_time);
-            log_info(&state, &format!("Updated clock label to: {}", current_time));
+            if clock_label.is_visible() {
+                let current_time = general_config.get_current_time();
+                clock_label.set_label(&current_time);
+                log_info(&state, &format!("Updated clock label to: {}", current_time));
+            }
             Continue
         });
     }
@@ -65,4 +70,5 @@ impl GeneralConfig {
             _ => now.format("%H:%M:%S").to_string(),
         }
     }
+
 }
